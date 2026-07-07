@@ -4,6 +4,21 @@ from datetime import timedelta
 
 
 @shared_task
+def increment_activity_score(project_id, amount=1):
+    """
+    Atomically bump a project's activity_score.
+    Called async on significant actions: task CRUD, messages, member joins, file uploads.
+    """
+    from apps.projects.models import Project
+    from django.db.models import F
+
+    Project.objects.filter(id=project_id).update(
+        activity_score=F('activity_score') + amount
+    )
+
+
+
+@shared_task
 def send_deadline_reminders():
     """
     Runs daily via Celery Beat.

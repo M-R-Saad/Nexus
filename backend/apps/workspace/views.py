@@ -47,6 +47,9 @@ class TaskListCreateView(generics.ListCreateAPIView):
             description=f"{self.request.user.username} created task '{task.title}'"
         )
 
+        from core.tasks import increment_activity_score
+        increment_activity_score.delay(str(project.id))
+
         # --- Phase 8: notify assignee ---
         if task.assigned_to and task.assigned_to != self.request.user:
             from apps.notifications.utils import notify
@@ -97,6 +100,9 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
                 description=f"{self.request.user.username} moved '{updated_task.title}' to {updated_task.status}",
                 meta={'old_status': old_status, 'new_status': updated_task.status}
             )
+
+            from core.tasks import increment_activity_score
+            increment_activity_score.delay(str(updated_task.project.id))
 
         # Log + notify on new assignment
         new_assigned = updated_task.assigned_to
@@ -157,6 +163,9 @@ class TaskAttachmentUploadView(APIView):
                 action_type='file_uploaded',
                 description=f"{request.user.username} uploaded '{file.name}' to '{task.title}'"
             )
+
+            from core.tasks import increment_activity_score
+            increment_activity_score.delay(str(task.project.id))
             return Response(TaskAttachmentSerializer(attachment).data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

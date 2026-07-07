@@ -97,6 +97,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+            # Bump project activity score
+            from core.tasks import increment_activity_score
+            increment_activity_score.delay(self.project_id)
+
+            # Notify project members (except sender) of new message
+            await self.notify_members_new_message(content)
+
         elif msg_type == 'typing':
             # Broadcast typing indicator to others (not back to sender)
             await self.channel_layer.group_send(
@@ -153,4 +160,47 @@ class ChatConsumer(AsyncWebsocketConsumer):
             project_id=self.project_id,
             sender=self.user,
             content=content
+        )
+
+    @database_sync_to_async
+    def get_other_members(self):
+        """Return all project members + owner except the current user."""
+        from apps.projects.models import Project, ProjectMember
+        try:
+            project = Project.objects.get(id=self.project_id)
+        except Project.DoesNotExist:
+            return []
+
+        member_users = list(
+            ProjectMember.objects.filter(project=project)
+            .exclude(user=self.user)
+            .select_related('user')
+            .values_list('user', flat=True)
+        )
+        # Include owner if they're not the sender
+        if project.owner_id != self.user.id:
+            member_users.append(project.owner_id)
+
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        return list(User.objects.filter(id__in=member_users))
+
+    async def notify_members_new_message(self, content):
+        """Notify all project members (except sender) about a new chat message."""
+        members = await self.get_other_members()
+        preview = content[:80] + ('…' if len(content) > 80 else '')
+
+        for member in members:
+            await self.send_new_message_notification(member, preview)
+
+    @database_sync_to_async
+    def send_new_message_notification(self, recipient, preview):
+        from apps.notifications.utils import notify
+        notify(
+            recipient=recipient,
+            type='new_message',
+            title=f"{self.user.username} sent a message",
+            body=preview,
+            link=f"/workspace/{self.project_id}/chat",
+            meta={'project_id': self.project_id}
         )

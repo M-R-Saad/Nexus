@@ -27,7 +27,7 @@ function PrivateRoute({ children }) {
 
 function AppRoutes() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-surface-50 dark:bg-surface-950 transition-colors duration-300">
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />

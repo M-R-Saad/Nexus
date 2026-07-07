@@ -33,7 +33,6 @@ export default function EditProfile() {
     portfolio_url: user?.portfolio_url || '',
   })
 
-  // Sync form when profile loads
   useState(() => {
     if (profile) {
       setForm({
@@ -103,26 +102,42 @@ export default function EditProfile() {
   }, {})
 
   return (
-    <main className="max-w-2xl mx-auto px-6 py-10">
+    <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 animate-fadeInUp">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-surface-900">Edit Profile</h1>
+        <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Edit Profile</h1>
         <button onClick={() => navigate(`/users/${user?.username}`)}
-          className="text-sm text-surface-500 hover:text-surface-700 transition-colors">
-          ← View Profile
+          className="btn-ghost text-sm">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          View Profile
         </button>
       </div>
 
       {/* Avatar */}
-      <div className="bg-white rounded-2xl border border-surface-200 p-6 mb-5">
-        <h2 className="text-sm font-semibold text-surface-700 mb-4">Profile Photo</h2>
+      <div className="card rounded-2xl p-6 sm:p-8 mb-5">
+        <h2 className="text-sm font-semibold text-surface-900 dark:text-surface-100 mb-4 flex items-center gap-2">
+          <svg className="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Profile Photo
+        </h2>
         <div className="flex items-center gap-5">
           <Avatar username={user?.username} avatarUrl={user?.avatar_url} size="lg" />
           <div>
             <button onClick={() => fileRef.current.click()} disabled={avatarLoading}
-              className="bg-primary-600 hover:bg-primary-700 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50">
-              {avatarLoading ? 'Uploading...' : 'Upload Photo'}
+              className="btn-primary text-sm">
+              {avatarLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Uploading...
+                </span>
+              ) : 'Upload Photo'}
             </button>
-            <p className="text-xs text-surface-400 mt-1">JPEG, PNG or WebP — max 5MB</p>
+            <p className="text-xs text-surface-400 dark:text-surface-500 mt-2">JPEG, PNG or WebP — max 5MB</p>
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp"
               onChange={handleAvatarChange} className="hidden" />
           </div>
@@ -130,90 +145,116 @@ export default function EditProfile() {
       </div>
 
       {/* Profile Info */}
-      <div className="bg-white rounded-2xl border border-surface-200 p-6 mb-5">
-        <h2 className="text-sm font-semibold text-surface-700 mb-4">Profile Info</h2>
+      <div className="card rounded-2xl p-6 sm:p-8 mb-5">
+        <h2 className="text-sm font-semibold text-surface-900 dark:text-surface-100 mb-5 flex items-center gap-2">
+          <svg className="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          Profile Info
+        </h2>
 
-        {error && <div className="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 mb-4">{error}</div>}
-        {success && <div className="bg-green-50 text-green-700 text-sm rounded-lg px-4 py-3 mb-4">Profile updated successfully.</div>}
+        {error && (
+          <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 mb-5 border border-red-100 dark:border-red-500/20">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-sm rounded-xl px-4 py-3 mb-5 border border-emerald-100 dark:border-emerald-500/20 animate-fadeInUp">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Profile updated successfully.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-surface-600 mb-1">Email</label>
+            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Email</label>
             <input type="email" value={profile?.email || ''} disabled
-              className="w-full border border-surface-200 rounded-lg px-3 py-2.5 text-sm bg-surface-50 text-surface-400 cursor-not-allowed" />
-            <p className="text-xs text-surface-400 mt-1">Email cannot be changed</p>
+              className="input bg-surface-50 dark:bg-surface-800 text-surface-400 dark:text-surface-500 cursor-not-allowed" />
+            <p className="text-xs text-surface-400 dark:text-surface-500 mt-1">Email cannot be changed</p>
           </div>
-
           <div>
-            <label className="block text-xs font-medium text-surface-600 mb-1">Username</label>
+            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Username</label>
             <input type="text" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })}
-              className="w-full border border-surface-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+              className="input" />
           </div>
-
           <div>
-            <label className="block text-xs font-medium text-surface-600 mb-1">Bio</label>
+            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Bio</label>
             <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })}
               rows={3} placeholder="Tell other developers about yourself..."
-              className="w-full border border-surface-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-none" />
+              className="input resize-none" />
           </div>
-
           <div>
-            <label className="block text-xs font-medium text-surface-600 mb-1">GitHub URL</label>
+            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">GitHub URL</label>
             <input type="url" value={form.github_url} onChange={(e) => setForm({ ...form, github_url: e.target.value })}
-              placeholder="https://github.com/yourusername"
-              className="w-full border border-surface-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+              placeholder="https://github.com/yourusername" className="input" />
           </div>
-
           <div>
-            <label className="block text-xs font-medium text-surface-600 mb-1">Portfolio URL</label>
+            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Portfolio URL</label>
             <input type="url" value={form.portfolio_url} onChange={(e) => setForm({ ...form, portfolio_url: e.target.value })}
-              placeholder="https://yourportfolio.com"
-              className="w-full border border-surface-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+              placeholder="https://yourportfolio.com" className="input" />
           </div>
-
           <button type="submit" disabled={updateMutation.isPending}
-            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
+            className="btn-primary">
             {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
       </div>
 
       {/* Skills */}
-      <div className="bg-white rounded-2xl border border-surface-200 p-6">
-        <h2 className="text-sm font-semibold text-surface-700 mb-1">Skills</h2>
-        <p className="text-xs text-surface-400 mb-4">Click to add or remove skills from your profile</p>
+      <div className="card rounded-2xl p-6 sm:p-8">
+        <h2 className="text-sm font-semibold text-surface-900 dark:text-surface-100 mb-1 flex items-center gap-2">
+          <svg className="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          Skills
+        </h2>
+        <p className="text-xs text-surface-400 dark:text-surface-500 mb-5">Click to add or remove skills</p>
 
-        {/* My current skills */}
+        {/* Current skills */}
         {profile?.user_skills?.length > 0 && (
-          <div className="mb-5">
-            <p className="text-xs font-medium text-surface-500 mb-2">Your skills</p>
+          <div className="mb-6">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-surface-400 dark:text-surface-500 font-semibold mb-2">Your skills</p>
             <div className="flex flex-wrap gap-2">
               {profile.user_skills.map((us) => (
                 <button key={us.id} onClick={() => removeSkillMutation.mutate(us.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-100 text-primary-700 text-xs font-medium hover:bg-red-100 hover:text-red-600 transition-colors group">
-                  <SkillTag name={us.skill.name} category={us.skill.category} />
-                  <span className="group-hover:inline hidden text-xs">✕</span>
+                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-500/15 text-primary-700 dark:text-primary-300 text-xs font-medium hover:bg-red-100 dark:hover:bg-red-500/15 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                  {us.skill.name}
+                  <svg className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Add skills grouped by category */}
-        {Object.entries(grouped).map(([category, skills]) => (
-          <div key={category} className="mb-4">
-            <p className="text-xs font-medium text-surface-400 mb-2">{category}</p>
-            <div className="flex flex-wrap gap-2">
-              {skills.filter((s) => !mySkillIds.includes(s.id)).map((skill) => (
-                <button key={skill.id}
-                  onClick={() => addSkillMutation.mutate({ skill_id: skill.id, proficiency: 'Intermediate' })}
-                  className="text-xs px-3 py-1.5 rounded-full border border-surface-200 text-surface-600 hover:border-primary-400 hover:text-primary-600 transition-colors">
-                  + {skill.name}
-                </button>
-              ))}
+        {/* Available skills */}
+        {Object.entries(grouped).map(([category, skills]) => {
+          const available = skills.filter((s) => !mySkillIds.includes(s.id))
+          if (available.length === 0) return null
+          return (
+            <div key={category} className="mb-4">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-surface-400 dark:text-surface-500 font-semibold mb-2">{category}</p>
+              <div className="flex flex-wrap gap-2">
+                {available.map((skill) => (
+                  <button key={skill.id}
+                    onClick={() => addSkillMutation.mutate({ skill_id: skill.id, proficiency: 'Intermediate' })}
+                    className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-400 hover:border-primary-400 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    {skill.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </main>
   )

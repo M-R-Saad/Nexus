@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { getMessages } from '../../api/workspace'
 import { useAuth } from '../../hooks/useAuth'
@@ -16,22 +16,22 @@ function formatTime(iso) {
 
 function MessageBubble({ msg, isMe }) {
   return (
-    <div className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex items-end gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
       {!isMe && (
         <Avatar username={msg.sender?.username} avatarUrl={msg.sender?.avatar_url} size="sm" />
       )}
       <div className={`max-w-sm ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
         {!isMe && (
-          <span className="text-xs text-surface-400 mb-1 ml-1">{msg.sender?.username}</span>
+          <span className="text-[10px] text-surface-400 dark:text-surface-500 mb-1 ml-1 font-medium">{msg.sender?.username}</span>
         )}
         <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
           isMe
-            ? 'bg-primary-600 text-white rounded-br-sm'
-            : 'bg-white border border-surface-200 text-surface-900 rounded-bl-sm'
+            ? 'bg-primary-600 text-white rounded-br-md shadow-sm'
+            : 'bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-900 dark:text-surface-100 rounded-bl-md'
         }`}>
           {msg.content}
         </div>
-        <span className="text-xs text-surface-300 mt-1 mx-1">
+        <span className="text-[10px] text-surface-300 dark:text-surface-600 mt-1 mx-1">
           {msg.created_at ? formatTime(msg.created_at) : ''}
         </span>
       </div>
@@ -53,7 +53,6 @@ export default function TeamChat() {
   const wsUrl = `ws://${window.location.host}/ws/chat/${projectId}/`
   const { messages: wsMessages, send, sendTyping, connected, onlineUsers, typingUsers } = useWebSocket(wsUrl)
 
-  // Load message history on mount
   useEffect(() => {
     setHistoryLoading(true)
     getMessages(projectId)
@@ -65,7 +64,6 @@ export default function TeamChat() {
       .finally(() => setHistoryLoading(false))
   }, [projectId])
 
-  // Auto scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [history, wsMessages])
@@ -83,8 +81,6 @@ export default function TeamChat() {
 
   const handleInputChange = (e) => {
     setInput(e.target.value)
-
-    // Send typing indicator
     sendTyping(true)
     if (typingTimeout.current) clearTimeout(typingTimeout.current)
     typingTimeout.current = setTimeout(() => {
@@ -92,7 +88,6 @@ export default function TeamChat() {
     }, 2000)
   }
 
-  // Combine history + live messages, deduplicate by id
   const seenIds = new Set()
   const allMessages = [...history, ...wsMessages].filter((m) => {
     if (!m.id) return true
@@ -103,46 +98,49 @@ export default function TeamChat() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">
-
       {/* Chat area */}
       <div className="flex-1 flex flex-col">
-
         {/* Header */}
-        <div className="px-5 py-3 border-b border-surface-200 bg-white flex items-center justify-between flex-shrink-0">
+        <div className="px-5 py-3 border-b border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <h1 className="text-base font-semibold text-surface-900">Team Chat</h1>
-            <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${
-              connected ? 'bg-green-100 text-green-600' : 'bg-surface-100 text-surface-400'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-green-500' : 'bg-surface-400'}`} />
+            <h1 className="text-base font-semibold text-surface-900 dark:text-white flex items-center gap-2">
+              <svg className="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              Team Chat
+            </h1>
+            <span className={`badge text-[10px] ${connected ? 'badge-success' : 'bg-surface-100 dark:bg-surface-800 text-surface-400'}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-surface-400'}`} />
               {connected ? 'Connected' : 'Reconnecting...'}
             </span>
           </div>
-          <button
-            onClick={() => setShowOnline((s) => !s)}
-            className="flex items-center gap-1.5 text-xs text-surface-500 hover:text-surface-700 transition-colors"
-          >
-            <span className="w-2 h-2 rounded-full bg-green-400" />
+          <button onClick={() => setShowOnline((s) => !s)}
+            className="btn-ghost text-xs gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
             {onlineUsers.length + (connected ? 1 : 0)} online
           </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 bg-surface-50">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 bg-surface-50 dark:bg-surface-950">
           {historyLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className={`flex gap-2 ${i % 2 === 0 ? '' : 'flex-row-reverse'}`}>
-                  <div className="w-7 h-7 rounded-full bg-surface-200 animate-pulse flex-shrink-0" />
-                  <div className={`h-10 rounded-2xl bg-surface-200 animate-pulse ${i % 2 === 0 ? 'w-48' : 'w-36'}`} />
+                <div key={i} className={`flex gap-2.5 ${i % 2 === 0 ? '' : 'flex-row-reverse'}`}>
+                  <div className="w-8 h-8 rounded-full skeleton flex-shrink-0" />
+                  <div className={`h-10 rounded-2xl skeleton ${i % 2 === 0 ? 'w-48' : 'w-36'}`} />
                 </div>
               ))}
             </div>
           ) : allMessages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="text-4xl mb-3">💬</div>
-              <p className="text-surface-500 font-medium">No messages yet</p>
-              <p className="text-surface-400 text-sm mt-1">Be the first to say something!</p>
+              <div className="w-16 h-16 rounded-2xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <p className="text-surface-600 dark:text-surface-300 font-semibold">No messages yet</p>
+              <p className="text-surface-400 dark:text-surface-500 text-sm mt-1">Be the first to say something!</p>
             </div>
           ) : (
             allMessages.map((msg, i) => {
@@ -153,24 +151,24 @@ export default function TeamChat() {
 
           {/* Typing indicator */}
           {typingUsers.length > 0 && (
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-1">
+            <div className="flex items-center gap-2.5">
+              <div className="flex -space-x-1.5">
                 {typingUsers.slice(0, 3).map((u) => (
                   <div key={u.user_id}
-                    className="w-6 h-6 rounded-full bg-surface-300 border-2 border-surface-50 flex items-center justify-center text-xs text-surface-600">
+                    className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 border-2 border-surface-50 dark:border-surface-950 flex items-center justify-center text-[9px] text-white font-bold">
                     {u.username?.[0]?.toUpperCase()}
                   </div>
                 ))}
               </div>
-              <div className="bg-white border border-surface-200 rounded-2xl rounded-bl-sm px-4 py-2.5">
+              <div className="bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-2xl rounded-bl-md px-4 py-2.5">
                 <div className="flex gap-1 items-center">
                   <span className="w-1.5 h-1.5 bg-surface-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-1.5 h-1.5 bg-surface-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="w-1.5 h-1.5 bg-surface-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
-              <span className="text-xs text-surface-400">
-                {typingUsers.map((u) => u.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+              <span className="text-[10px] text-surface-400 dark:text-surface-500 font-medium">
+                {typingUsers.map((u) => u.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing
               </span>
             </div>
           )}
@@ -179,7 +177,7 @@ export default function TeamChat() {
         </div>
 
         {/* Input */}
-        <form onSubmit={handleSend} className="px-5 py-4 bg-white border-t border-surface-200 flex-shrink-0">
+        <form onSubmit={handleSend} className="px-5 py-4 bg-white dark:bg-surface-900 border-t border-surface-200 dark:border-surface-800 flex-shrink-0">
           <div className="flex gap-3 items-end">
             <div className="flex-1 relative">
               <input
@@ -190,18 +188,17 @@ export default function TeamChat() {
                 placeholder={connected ? 'Type a message...' : 'Connecting...'}
                 disabled={!connected}
                 maxLength={2000}
-                className="w-full border border-surface-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none disabled:bg-surface-50 disabled:text-surface-400 resize-none"
+                className="input pr-12"
               />
               {input.length > 1800 && (
-                <span className="absolute right-3 bottom-3 text-xs text-surface-400">{2000 - input.length}</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-surface-400 font-medium">{2000 - input.length}</span>
               )}
             </div>
-            <button
-              type="submit"
-              disabled={!connected || !input.trim()}
-              className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex-shrink-0"
-            >
-              Send
+            <button type="submit" disabled={!connected || !input.trim()}
+              className="btn-primary px-5 py-2.5 flex-shrink-0">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
             </button>
           </div>
         </form>
@@ -209,33 +206,33 @@ export default function TeamChat() {
 
       {/* Online users panel */}
       {showOnline && (
-        <div className="w-56 border-l border-surface-200 bg-white flex-shrink-0">
-          <div className="px-4 py-3 border-b border-surface-100">
-            <p className="text-xs font-semibold text-surface-500 uppercase tracking-wider">Online Now</p>
+        <div className="w-60 border-l border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 flex-shrink-0 animate-fadeIn">
+          <div className="px-4 py-3 border-b border-surface-100 dark:border-surface-800">
+            <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-surface-400 dark:text-surface-500">Online Now</p>
           </div>
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-1">
             {/* Current user */}
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg">
+            <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl">
               <div className="relative">
                 <Avatar username={user?.username} avatarUrl={user?.avatar_url} size="sm" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-white" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-white dark:border-surface-900" />
               </div>
-              <span className="text-sm text-surface-700 font-medium truncate">{user?.username}</span>
-              <span className="text-xs text-surface-400 ml-auto">you</span>
+              <span className="text-sm text-surface-700 dark:text-surface-300 font-medium truncate">{user?.username}</span>
+              <span className="text-[10px] text-surface-400 dark:text-surface-500 ml-auto font-medium">you</span>
             </div>
 
             {onlineUsers.map((u) => (
-              <div key={u.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg">
+              <div key={u.id} className="flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors">
                 <div className="relative">
                   <Avatar username={u.username} avatarUrl={u.avatar_url} size="sm" />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-white" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-white dark:border-surface-900" />
                 </div>
-                <span className="text-sm text-surface-700 truncate">{u.username}</span>
+                <span className="text-sm text-surface-700 dark:text-surface-300 truncate">{u.username}</span>
               </div>
             ))}
 
             {onlineUsers.length === 0 && (
-              <p className="text-xs text-surface-400 px-2 py-1">No other members online</p>
+              <p className="text-xs text-surface-400 dark:text-surface-500 px-2 py-3 text-center">No other members online</p>
             )}
           </div>
         </div>

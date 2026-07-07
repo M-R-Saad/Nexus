@@ -81,6 +81,9 @@ class ApplicationDecisionView(APIView):
             application.role.is_filled = True
             application.role.save()
 
+            from core.tasks import increment_activity_score
+            increment_activity_score.delay(str(application.project.id), 3)
+
         # --- Phase 8: notify applicant of decision ---
         from apps.notifications.utils import notify
         notif_type = 'application_accepted' if decision == 'Accepted' else 'application_rejected'
